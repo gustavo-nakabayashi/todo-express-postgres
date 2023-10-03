@@ -27,6 +27,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/todos', async (req, res) => {
+  try {
+    const todos = await pool.query('SELECT * FROM todo;');
+    res.json(todos);
+  } catch (err) {
+    if (err) {
+      console.error(err);
+      res.status(500).send(err);
+    } else {
+      console.log('Unkown error');
+    }
+  }
+});
+
 app.post('/todos', async (req, res) => {
   try {
     const { description } = req.body;
