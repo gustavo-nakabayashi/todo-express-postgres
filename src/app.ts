@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { Pool } from 'pg';
 import cors from 'cors';
@@ -87,7 +87,7 @@ app.put('/todos/:id', async (req, res) => {
   }
 });
 
-app.get('/test', (req: Request, res: Response, next: NextFunction) => {
+app.get('/test', (req: Request, res: Response) => {
   res.send('hi');
 });
 
