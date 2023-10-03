@@ -27,6 +27,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/todos/:id', async (req, res) => {
+  try {
+    console.log(req.params.id);
+    const { id } = req.params;
+    const todo = await pool.query('SELECT * FROM todo WHERE todo_id = $1;', [id]);
+    res.json(todo.rows[0]);
+  } catch (err) {
+    if (err) {
+      console.error(err);
+      res.status(500).send(err);
+    } else {
+      console.log('Unkown error');
+    }
+  }
+});
+
 app.get('/todos', async (req, res) => {
   try {
     const todos = await pool.query('SELECT * FROM todo;');

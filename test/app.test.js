@@ -36,3 +36,19 @@ describe('/GET /todos', () => {
     expect(addedTodo).toHaveProperty('description', uniqueDescription);
   });
 });
+
+describe('/GET /todos/:id', () => {
+  test('Should return a todo by id', async () => {
+    // Arrange
+    const uniqueDescription = new Date().getTime().toString();
+    const todoToAdd = { description: uniqueDescription };
+    const addedTodo = await axiosAPIClient.post('/todos', todoToAdd);
+    const { todo_id } = addedTodo.data;
+    // Act
+    const response = await axiosAPIClient.get(`/todos/${todo_id}`);
+    // Assert
+    const { status, data } = response;
+    expect(status).toEqual(200);
+    expect(data).toHaveProperty('todo_id', todo_id);
+  });
+});
