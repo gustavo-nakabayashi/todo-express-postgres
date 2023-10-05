@@ -8,9 +8,12 @@ const getTodoById = async (req: Request, res: Response) => {
     const todo = await find(id);
     res.json(todo);
   } catch (err) {
-    if (err) {
-      console.error(err);
-      res.status(500).send(err);
+    if (err instanceof Error) {
+      if (err.message === 'Todo not found') {
+        res.status(404).send(err.message);
+      } else {
+        res.status(500).send(err.message);
+      }
     } else {
       console.log('Unkown error');
     }

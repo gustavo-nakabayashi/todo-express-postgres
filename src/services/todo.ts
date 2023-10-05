@@ -8,6 +8,7 @@ interface Todo {
 const find = async (id: string): Promise<Todo> => {
   const pool = getDb();
   const todo = await pool.query('SELECT * FROM todo WHERE todo_id = $1;', [id]);
+  if (!todo.rowCount) throw new Error('Todo not found');
   return todo.rows[0];
 };
 

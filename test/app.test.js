@@ -63,6 +63,14 @@ describe('/todos', () => {
         expect(status).toEqual(200);
         expect(data).toHaveProperty('todo_id', todo_id);
       });
+      test('Should 404 if todo not found', async () => {
+        // Arrange
+        // Act
+        const response = await axiosAPIClient.get(`/todos/0`);
+        // Assert
+        const { status } = response;
+        expect(status).toEqual(404);
+      });
     });
 
     describe('PUT', () => {
