@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { find, findAll, create, update } from '../services/todo';
+import Joi from 'joi';
 
 const getTodoById = async (req: Request, res: Response) => {
   try {
@@ -31,6 +32,15 @@ const getAllTodos = async (req: Request, res: Response) => {
 };
 
 const createTodo = async (req: Request, res: Response) => {
+  const schema = Joi.object({
+    description: Joi.string().required(),
+  });
+
+  const { error } = schema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json(error.details[0].message);
+  }
   try {
     const { description } = req.body;
     const newTodo = await create(description);

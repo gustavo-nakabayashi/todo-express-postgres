@@ -1,6 +1,11 @@
 import { getDb } from '../db';
 
-const find = async (id: string) => {
+interface Todo {
+  todo_id: string;
+  description: string;
+}
+
+const find = async (id: string): Promise<Todo> => {
   const pool = getDb();
   const todo = await pool.query('SELECT * FROM todo WHERE todo_id = $1;', [id]);
   return todo.rows[0];

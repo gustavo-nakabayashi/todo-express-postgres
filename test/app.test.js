@@ -22,6 +22,14 @@ describe('/todos', () => {
       const { data, status } = await axiosAPIClient.get(`/todos/${addedOrderId}`);
       expect({ data, status }).toMatchObject({ data: { todo_id: addedOrderId, description: 'teste' }, status: 200 });
     });
+    test('Should return 400 if payload invalid', async () => {
+      // Arrange
+      const todoToAdd = {};
+      // Act
+      const { status } = await axiosAPIClient.post('/todos', todoToAdd);
+      // Assert
+      expect(status).toBe(400);
+    });
   });
 
   describe('GET', () => {
