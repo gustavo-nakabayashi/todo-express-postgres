@@ -89,6 +89,15 @@ describe('/todos', () => {
         expect(status).toEqual(200);
         expect(data).toHaveProperty('description', 'updated');
       });
+      test('Should 404 if todo not found', async () => {
+        // Arrange
+        const dataToUpdate = { description: 'updated' };
+        // Act
+        const response = await axiosAPIClient.put(`/todos/0`, dataToUpdate);
+        // Assert
+        const { status } = response;
+        expect(status).toEqual(404);
+      });
     });
   });
 });

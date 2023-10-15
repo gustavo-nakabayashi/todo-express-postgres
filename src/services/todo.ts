@@ -31,6 +31,7 @@ const create = async (description: string) => {
 const update = async (id: string, description: string) => {
   const pool = getDb();
   const todo = await pool.query('UPDATE todo SET description = $1 WHERE todo_id = $2 ;', [description, id]);
+  if (!todo.rowCount) throw new Error('Todo not found');
   return todo.rows[0];
 };
 
