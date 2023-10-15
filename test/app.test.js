@@ -89,6 +89,7 @@ describe('/todos', () => {
         expect(status).toEqual(200);
         expect(data).toHaveProperty('description', 'updated');
       });
+
       test('Should 404 if todo not found', async () => {
         // Arrange
         const dataToUpdate = { description: 'updated' };
@@ -97,6 +98,19 @@ describe('/todos', () => {
         // Assert
         const { status } = response;
         expect(status).toEqual(404);
+      });
+
+      test('Should return 400 if payload invalid', async () => {
+        // Arrange
+        const uniqueDescription = new Date().getTime().toString();
+        const todoToAdd = { description: uniqueDescription };
+        const addedTodo = await axiosAPIClient.post('/todos', todoToAdd);
+        const { todo_id } = addedTodo.data;
+        const dataToUpdate = {};
+        // Act
+        const { status } = await axiosAPIClient.put(`/todos/${todo_id}`, dataToUpdate);
+        // Assert
+        expect(status).toEqual(400);
       });
     });
   });

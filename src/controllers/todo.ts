@@ -59,6 +59,16 @@ const createTodo = async (req: Request, res: Response) => {
 };
 
 const updateTodoById = async (req: Request, res: Response) => {
+  const schema = Joi.object({
+    description: Joi.string().required(),
+  });
+
+  const { error } = schema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json(error.details[0].message);
+  }
+
   try {
     const { id } = req.params;
     const { description } = req.body;
