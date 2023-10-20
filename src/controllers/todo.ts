@@ -37,6 +37,7 @@ const getAllTodos = async (req: Request, res: Response) => {
 const createTodo = async (req: Request, res: Response) => {
   const schema = Joi.object({
     description: Joi.string().required(),
+    user_id: Joi.string().required(),
   });
 
   const { error } = schema.validate(req.body);
@@ -44,9 +45,10 @@ const createTodo = async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).json(error.details[0].message);
   }
+
   try {
-    const { description } = req.body;
-    const newTodo = await create(description);
+    const { description, user_id } = req.body;
+    const newTodo = await create(description, user_id);
     res.json(newTodo);
   } catch (err) {
     if (err) {

@@ -8,19 +8,20 @@ const axiosConfig = {
   validateStatus: () => true, //Don't throw HTTP exceptions. Delegate to the tests to decide which error is acceptable
 };
 const axiosAPIClient = axios.create(axiosConfig);
+const userId = '3de20898-e40f-49a3-87cb-984542ebacae';
 
 describe('/todos', () => {
   describe('POST', () => {
     test('Should return 200', async () => {
       // Arrange
-      const todoToAdd = { description: 'teste' };
+      const todoToAdd = { description: 'teste', user_id: userId };
       // Act
       const {
         data: { todo_id: addedOrderId },
       } = await axiosAPIClient.post('/todos', todoToAdd);
       // Assert
       const { data, status } = await axiosAPIClient.get(`/todos/${addedOrderId}`);
-      expect({ data, status }).toMatchObject({ data: { todo_id: addedOrderId, description: 'teste' }, status: 200 });
+      expect({ data, status }).toMatchObject({ data: { ...todoToAdd, todo_id: addedOrderId }, status: 200 });
     });
     test('Should return 400 if payload invalid', async () => {
       // Arrange
@@ -36,7 +37,7 @@ describe('/todos', () => {
     test('Should return added todo', async () => {
       // Arrange
       const uniqueDescription = new Date().getTime().toString();
-      const todoToAdd = { description: uniqueDescription };
+      const todoToAdd = { description: uniqueDescription, user_id: userId };
       await axiosAPIClient.post('/todos', todoToAdd);
       // Act
       const response = await axiosAPIClient.get('/todos');
@@ -53,7 +54,7 @@ describe('/todos', () => {
       test('Should return a todo by id', async () => {
         // Arrange
         const uniqueDescription = new Date().getTime().toString();
-        const todoToAdd = { description: uniqueDescription };
+        const todoToAdd = { description: uniqueDescription, user_id: userId };
         const addedTodo = await axiosAPIClient.post('/todos', todoToAdd);
         const { todo_id } = addedTodo.data;
         // Act
@@ -77,7 +78,7 @@ describe('/todos', () => {
       test('Should return update a todo by id', async () => {
         // Arrange
         const uniqueDescription = new Date().getTime().toString();
-        const todoToAdd = { description: uniqueDescription };
+        const todoToAdd = { description: uniqueDescription, user_id: userId };
         const addedTodo = await axiosAPIClient.post('/todos', todoToAdd);
         const { todo_id } = addedTodo.data;
         // Act
@@ -103,7 +104,7 @@ describe('/todos', () => {
       test('Should return 400 if payload invalid', async () => {
         // Arrange
         const uniqueDescription = new Date().getTime().toString();
-        const todoToAdd = { description: uniqueDescription };
+        const todoToAdd = { description: uniqueDescription, user_id: userId };
         const addedTodo = await axiosAPIClient.post('/todos', todoToAdd);
         const { todo_id } = addedTodo.data;
         const dataToUpdate = {};

@@ -18,10 +18,10 @@ const findAll = async () => {
   return todos;
 };
 
-const create = async (description: string) => {
+const create = async (description: string, user_id: string) => {
   const pool = getDb();
   try {
-    const newTodo = await pool.query('INSERT INTO todo (description) VALUES($1) RETURNING *', [description]);
+    const newTodo = await pool.query('INSERT INTO todo (description, user_id) VALUES($1, $2) RETURNING *', [description, user_id]);
     return newTodo.rows[0];
   } catch (error) {
     console.error(error);
