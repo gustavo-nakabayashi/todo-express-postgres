@@ -12,9 +12,9 @@ const find = async (id: string): Promise<Todo> => {
   return todo.rows[0];
 };
 
-const findAll = async () => {
+const findAll = async (user_id: string) => {
   const pool = getDb();
-  const todos = await pool.query('SELECT * FROM todo;');
+  const todos = await pool.query('SELECT * FROM todo WHERE user_id = $1;', [user_id]);
   return todos;
 };
 

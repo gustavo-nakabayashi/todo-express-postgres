@@ -22,7 +22,7 @@ const getTodoById = async (req: Request, res: Response) => {
 
 const getAllTodos = async (req: Request, res: Response) => {
   try {
-    const todos = await findAll();
+    const todos = await findAll(req.body.user_id);
     res.json(todos);
   } catch (err) {
     if (err) {
@@ -63,11 +63,13 @@ const createTodo = async (req: Request, res: Response) => {
 const updateTodoById = async (req: Request, res: Response) => {
   const schema = Joi.object({
     description: Joi.string().required(),
+    user_id: Joi.string().required(),
   });
 
   const { error } = schema.validate(req.body);
 
   if (error) {
+    console.log('error', error.details[0].message);
     return res.status(400).json(error.details[0].message);
   }
 
