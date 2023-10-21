@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 
 const generateToken = (userId) => {
-  const token = jwt.sign(userId, process.env.SECRET_KEY);
+  const token = jwt.sign({ user: { userId: userId } }, process.env.SECRET_KEY);
   return token;
 };
 
@@ -11,7 +11,8 @@ dotenv.config();
 
 const userId = '3de20898-e40f-49a3-87cb-984542ebacae';
 const userId2 = '72e20898-e40f-49a3-87cb-984542ebac23';
-const axiosConfig = {
+
+const axiosConfigUser1 = {
   baseURL: `http://127.0.0.1:${process.env.PORT}`,
   validateStatus: () => true, //Don't throw HTTP exceptions. Delegate to the tests to decide which error is acceptable
   headers: {
@@ -19,7 +20,16 @@ const axiosConfig = {
   },
 };
 
-const axiosAPIClient = axios.create(axiosConfig);
+const axiosConfigUser2 = {
+  baseURL: `http://127.0.0.1:${process.env.PORT}`,
+  validateStatus: () => true, //Don't throw HTTP exceptions. Delegate to the tests to decide which error is acceptable
+  headers: {
+    Authorization: `Bearer ${generateToken(userId2)}`,
+  },
+};
+
+const axiosAPIClient = axios.create(axiosConfigUser1);
+const axiosAPIClient2 = axios.create(axiosConfigUser2);
 
 describe('/todos', () => {
   describe('POST', () => {
@@ -88,10 +98,22 @@ describe('/todos', () => {
         expect(status).toEqual(200);
         expect(data).toHaveProperty('todo_id', todo_id);
       });
+
       test('Should 404 if todo not found', async () => {
         // Arrange
         // Act
         const response = await axiosAPIClient.get(`/todos/0`);
+        // Assert
+        const { status } = response;
+        expect(status).toEqual(404);
+      });
+
+      test('Should not return todo from another user', async () => {
+        const uniqueDescription = new Date().getTime().toString();
+        const todoToAdd = { description: uniqueDescription };
+        const addedTodo = await axiosAPIClient2.post('/todos', todoToAdd);
+        // Act
+        const response = await axiosAPIClient.get(`/todos/${addedTodo.data.todo_id}`);
         // Assert
         const { status } = response;
         expect(status).toEqual(404);

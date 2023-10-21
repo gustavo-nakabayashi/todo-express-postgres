@@ -12,15 +12,23 @@ const app = express();
 
 const secretKey = process.env.SECRET_KEY || 'secret';
 
+type JwtPayload = {
+  user: {
+    userId: string;
+  };
+};
+
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   const authToken = req.headers['authorization'];
   const token = authToken && authToken.split(' ')[1];
   if (token == null) return res.status(401).send('Access denied');
-  jwt.verify(token, secretKey, (err, value) => {
-    if (err) return res.status(403).send('Invalid token');
-    req.body.user_id = value;
+  try {
+    const verify = jwt.verify(token, secretKey) as JwtPayload;
+    req.user = verify.user;
     next();
-  });
+  } catch (err) {
+    return res.status(403).send('Invalid token');
+  }
 };
 
 app.use(cors());
