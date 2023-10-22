@@ -1,13 +1,35 @@
 const axios = require('axios');
 const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+
+const generateToken = (userId) => {
+  const token = jwt.sign({ user: { userId: userId } }, process.env.SECRET_KEY);
+  return token;
+};
 
 dotenv.config();
 
-const axiosConfig = {
+const userId = '3de20898-e40f-49a3-87cb-984542ebacae';
+const userId2 = '72e20898-e40f-49a3-87cb-984542ebac23';
+
+const axiosConfigUser1 = {
   baseURL: `http://127.0.0.1:${process.env.PORT}`,
   validateStatus: () => true, //Don't throw HTTP exceptions. Delegate to the tests to decide which error is acceptable
+  headers: {
+    Authorization: `Bearer ${generateToken(userId)}`,
+  },
 };
-const axiosAPIClient = axios.create(axiosConfig);
+
+const axiosConfigUser2 = {
+  baseURL: `http://127.0.0.1:${process.env.PORT}`,
+  validateStatus: () => true, //Don't throw HTTP exceptions. Delegate to the tests to decide which error is acceptable
+  headers: {
+    Authorization: `Bearer ${generateToken(userId2)}`,
+  },
+};
+
+const axiosAPIClient = axios.create(axiosConfigUser1);
+const axiosAPIClient2 = axios.create(axiosConfigUser2);
 
 describe('/todos', () => {
   describe('POST', () => {
@@ -20,7 +42,7 @@ describe('/todos', () => {
       } = await axiosAPIClient.post('/todos', todoToAdd);
       // Assert
       const { data, status } = await axiosAPIClient.get(`/todos/${addedOrderId}`);
-      expect({ data, status }).toMatchObject({ data: { todo_id: addedOrderId, description: 'teste' }, status: 200 });
+      expect({ data, status }).toMatchObject({ data: { ...todoToAdd, todo_id: addedOrderId }, status: 200 });
     });
     test('Should return 400 if payload invalid', async () => {
       // Arrange
@@ -46,6 +68,19 @@ describe('/todos', () => {
       expect(status).toEqual(200);
       expect(addedTodo).toHaveProperty('description', uniqueDescription);
     });
+    test('Should not return todo from another user', async () => {
+      // Arrange
+      const uniqueDescription = new Date().getTime().toString();
+      const todoToAdd = { description: uniqueDescription };
+      await axiosAPIClient.post('/todos', todoToAdd);
+      // Act
+      const response = await axiosAPIClient.get('/todos');
+      // Assert
+      const { status, data } = response;
+      const addedTodo = data.rows.filter((todo) => todo.user_id == userId2);
+      expect(status).toEqual(200);
+      expect(addedTodo).toHaveLength(0);
+    });
   });
 
   describe('/:id', () => {
@@ -63,10 +98,22 @@ describe('/todos', () => {
         expect(status).toEqual(200);
         expect(data).toHaveProperty('todo_id', todo_id);
       });
+
       test('Should 404 if todo not found', async () => {
         // Arrange
         // Act
         const response = await axiosAPIClient.get(`/todos/0`);
+        // Assert
+        const { status } = response;
+        expect(status).toEqual(404);
+      });
+
+      test('Should not return todo from another user', async () => {
+        const uniqueDescription = new Date().getTime().toString();
+        const todoToAdd = { description: uniqueDescription };
+        const addedTodo = await axiosAPIClient2.post('/todos', todoToAdd);
+        // Act
+        const response = await axiosAPIClient.get(`/todos/${addedTodo.data.todo_id}`);
         // Assert
         const { status } = response;
         expect(status).toEqual(404);

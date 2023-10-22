@@ -1,11 +1,16 @@
-import { Request, Response } from 'express';
+import { Request, Response, RequestHandler } from 'express';
 import { find, findAll, create, update } from '../services/todo';
 import Joi from 'joi';
 
-const getTodoById = async (req: Request, res: Response) => {
+type Todo = {
+  description: string;
+};
+
+const getTodoById: RequestHandler<{ id: string }> = async (req, res) => {
   try {
-    const { id } = req.params;
-    const todo = await find(id);
+    const id = req.params.id;
+    const { userId } = req.user;
+    const todo = await find(id, userId);
     res.json(todo);
   } catch (err) {
     if (err instanceof Error) {
@@ -20,9 +25,9 @@ const getTodoById = async (req: Request, res: Response) => {
   }
 };
 
-const getAllTodos = async (req: Request, res: Response) => {
+const getAllTodos: RequestHandler = async (req, res) => {
   try {
-    const todos = await findAll();
+    const todos = await findAll(req.user.userId);
     res.json(todos);
   } catch (err) {
     if (err) {
@@ -34,7 +39,7 @@ const getAllTodos = async (req: Request, res: Response) => {
   }
 };
 
-const createTodo = async (req: Request, res: Response) => {
+const createTodo: RequestHandler = async (req, res) => {
   const schema = Joi.object({
     description: Joi.string().required(),
   });
@@ -44,9 +49,11 @@ const createTodo = async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).json(error.details[0].message);
   }
+
   try {
-    const { description } = req.body;
-    const newTodo = await create(description);
+    const { userId } = req.user;
+    const { description } = <Todo>req.body;
+    const newTodo = await create(description, userId);
     res.json(newTodo);
   } catch (err) {
     if (err) {
@@ -58,7 +65,7 @@ const createTodo = async (req: Request, res: Response) => {
   }
 };
 
-const updateTodoById = async (req: Request, res: Response) => {
+const updateTodoById: RequestHandler<{ id: string }> = async (req, res) => {
   const schema = Joi.object({
     description: Joi.string().required(),
   });
@@ -66,12 +73,13 @@ const updateTodoById = async (req: Request, res: Response) => {
   const { error } = schema.validate(req.body);
 
   if (error) {
+    console.log('error', error.details[0].message);
     return res.status(400).json(error.details[0].message);
   }
 
   try {
     const { id } = req.params;
-    const { description } = req.body;
+    const { description } = <Todo>req.body;
     const todo = await update(id, description);
     res.json(todo);
   } catch (err) {
